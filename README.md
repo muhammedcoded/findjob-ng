@@ -1,4 +1,4 @@
-# Findjob.ng v2.3: Job Board + CMS + Advertising + Metrics
+# Findjob.ng v2.4.0: Job Board + CMS + Advertising + Metrics + Admin Repair
 
 **Production-oriented application. External service behaviour still needs to be verified after deployment.** Public visitors search without sign-in. Supabase Auth is only for staff. The public website uses the green/white design and advertising columns. The staff area uses a separate full-width dashboard layout without public ad sidebars.
 
@@ -7,10 +7,10 @@
 - Public homepage with keyword search, 30 jobs per page, category filters and sorting. The public copy does not describe ordinary keyword search as an AI service.
 - Job detail pages retain full formatted vacancy descriptions. Apply Now opens an extracted employer application page or a Gmail compose window for email applications. If no direct employer destination is available, the page does not redirect applicants to the source job board.
 - MyJobMag Nigeria RSS importer that opens each original job page to extract the full description, job metadata and direct employer application email/link. Existing imported records are enriched by fingerprint instead of duplicated. Worldwide remote jobs are fetched from free public employer career feeds on Greenhouse, Lever and Ashby. No paid API key is required. The default employer boards are Canonical and Welo Global, and only fully remote jobs explicitly open Worldwide, Anywhere or Work from Anywhere are accepted.
-- Admin dashboard: job sources, job moderation, advertising placements, automatic sidebar ad rotation, metrics, separate sidebar widgets, editor team, branding, header/footer menus, custom pages, blog, SEO and settings.
+- Admin dashboard: left-side navigation, full-width workspace, total job counts, Published / Pending Review / Draft / Rejected / Expired / Trash filters, recoverable trash, job moderation, advertising placements, automatic sidebar ad rotation, metrics, separate sidebar widgets, editor team, branding, header/footer menus, custom pages, blog, SEO and settings.
 - Editor dashboard: pending/review/publish/reject jobs, create/edit pages and blog posts. Editors cannot alter sources, team, ads, site settings, or delete jobs/pages.
 - CMS: public `/blog`, `/blog/post-slug`, `/about`, `/contact`, `/disclaimer`, `/privacy`, `/terms`, and newly created `/<slug>` pages; published-only API, server-rendered metadata and dynamic sitemap/robots.
-- Responsive public and staff layouts. The staff dashboard is full-width and does not display public advertising sidebars.
+- Responsive public and staff layouts. The staff dashboard uses a desktop left sidebar and compact mobile navigation. Job descriptions have a visual editor and HTML source mode. Imported source-site social/share controls and promotional fragments are stripped before display.
 - Supabase database + Auth + image Storage; Docker for Railway, separate optional cron worker.
 
 ## 1. Supabase and SQL: do these before Railway
@@ -113,3 +113,8 @@ Before production launch manually verify: actual Admin and Editor sign-in; real 
 - `sql/schema.sql` then `sql/upgrade-v2.sql`: schema and v2 migration.
 - `public/index.html`, `public/assets/app.js`, `public/assets/style.css`: browser UI.
 - `tests`: automated checks.
+
+
+## v2.4.0 update
+
+Run `sql/upgrade-v2.4-admin-repair.sql` in Supabase SQL Editor after deploying v2.4.0. It repairs the ad inventory and storage bucket, installs metrics support, and enables recoverable Trash for jobs. The admin dashboard now has a left navigation sidebar, job status counts, mobile layouts, and a visual/HTML job-description editor. Use the Jobs tab's **Clean imported descriptions** action once to repair existing MyJobMag records and extract employer application destinations where the source includes them.

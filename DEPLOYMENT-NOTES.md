@@ -1,4 +1,4 @@
-# Findjob.ng v2.3 deployment notes
+# Findjob.ng v2.4.0 deployment notes
 
 ## What changed
 
@@ -61,3 +61,16 @@ The local automated tests and syntax checks are run before packaging. Live MyJob
 - Admin → Pages and Blog now accept safe rich text (headings, paragraphs, lists and links). Public pages and blog posts use a full-width layout and social share links.
 - Admin → Settings lets you set the CV AI Writer link label and destination. It appears in the main navigation when configured.
 - Footer is dark green with About, Blog, Contact, Privacy, Terms and Job Safety links. The public Staff access footer link has been removed.
+
+
+## v2.4.0 Admin and importer repair
+
+1. Deploy the v2.4.0 project files to the existing GitHub `main` branch.
+2. In Supabase SQL Editor, run `sql/upgrade-v2.4-admin-repair.sql`. This migration is idempotent. It adds the recoverable Trash status, ensures all 12 ad placements exist, creates/updates the `findjob-ads` storage bucket, and installs the first-party metrics table/function.
+3. Wait for Railway to finish the deployment, then hard-refresh `/staff/dashboard` with Ctrl+Shift+R.
+4. In Jobs, use **Clean imported descriptions** once to clean existing MyJobMag descriptions and fill application emails found in the Method of Application section. Review each extracted destination before publishing.
+5. Check Advertising by saving a banner. The file upload can also happen automatically when you save an advert after selecting a file.
+
+The dashboard now uses a left-side navigation panel on desktop and a compact responsive section menu on phones. Job status counts include Published, Pending Review, Draft, Rejected, Expired and Trash. Trash is recoverable; permanent deletion is restricted to admins.
+
+The job-description editor includes a visual editor and HTML source mode. Imported descriptions are sanitized to remove source-site navigation, social-sharing controls, Telegram promotions, unrelated signup fragments and unsafe HTML. Application emails or employer application links are extracted only when they appear in application instructions or relevant context. A job without a genuine destination remains pending for manual review.

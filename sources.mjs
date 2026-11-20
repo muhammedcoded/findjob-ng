@@ -1,5 +1,5 @@
 import {db} from './db.mjs';
-import {normalizeJob,parseRss,urlOk,applicationUrlOk,clean,textFromHtml,sanitizeDescriptionHtml,fingerprint,eligibility} from './lib.mjs';
+import {normalizeJob,parseRss,urlOk,applicationUrlOk,clean,textFromHtml,sanitizeDescriptionHtml,extractApplicationDestination,fingerprint,eligibility} from './lib.mjs';
 
 const allowedMyJobMagHosts=new Set(['www.myjobmag.com','myjobmag.com']);
 
@@ -70,7 +70,7 @@ export function parseMyJobMagDetail(html,rawTitle,sourceUrl){
  section=section.replace(/Posted\s*:\s*[^<\n]+|Expires\s*:\s*[^<\n]+/gi,'');
  section=section.replace(/<a\b[^>]*>\s*(?:Check how your CV matches this job|Build your CV for free|Download in different templates|View Jobs in [\s\S]*?|Save|Share|Facebook|LinkedIn|Copy link|Report job)[\s\S]*?<\/a>/gi,'');
  section=section.replace(/<[^>]*(?:class|id)=["'][^"']*(?:advert|ads|social|share|subscribe|newsletter|promo)[^"']*["'][^>]*>[\s\S]*?<\/[^>]+>/gi,'');
- const appUrl=applicationFromHtml(section,rawTitle);
+ const appUrl=extractApplicationDestination(section,rawTitle);
  const details=titleCompany(rawTitle);
  const beforeHeading=textFromHtml(String(html).slice(Math.max(0,startAt-5000),startAt));
  const expiryText=beforeHeading.match(/Expires\s*:\s*([^\n]+)/i)?.[1]?.trim()||'';

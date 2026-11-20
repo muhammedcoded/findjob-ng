@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {classify,clean,slugify,normalizeJob,parseRss,urlOk,applicationUrlOk,sanitizeDescriptionHtml,fingerprint,eligibility,CATEGORIES} from '../lib.mjs';
+import {classify,clean,slugify,normalizeJob,parseRss,urlOk,applicationUrlOk,sanitizeDescriptionHtml,extractApplicationDestination,fingerprint,eligibility,CATEGORIES} from '../lib.mjs';
 test('correct graduate category before bank',()=>assert.equal(classify('Access Bank Graduate Trainee'), 'Graduate Jobs'));
 test('technology detection',()=>assert.equal(classify('Senior React Developer'),'Technology Jobs'));
 test('remote category by location',()=>assert.equal(classify('Customer Support','','Remote'),'Remote Jobs'));
@@ -28,3 +28,18 @@ test('sanitizes rich job descriptions while preserving lists',()=>{const html=sa
 test('accepts free employer ATS jobs explicitly open worldwide',()=>{const j=normalizeJob({title:'Remote Product Designer',company:'Example',location:'Home based - Worldwide',description:'Work from anywhere with our team.',source_url:'https://jobs.example.com/roles/123',apply_url:'https://jobs.example.com/roles/123',source_key:'remote_ats',remote:true});assert.ok(j);assert.equal(j.eligibility,'global');assert.equal(j.apply_url,j.source_url);});
 test('rejects free ATS remote jobs with country restrictions even if worldwide is also mentioned',()=>assert.equal(normalizeJob({title:'Remote Engineer',company:'Example',location:'Worldwide',description:'Applicants must be based in the United States.',source_url:'https://jobs.example.com/roles/123',apply_url:'https://jobs.example.com/roles/123',source_key:'remote_ats',remote:true}),null));
 test('rejects remote ATS jobs that do not explicitly say worldwide',()=>assert.equal(normalizeJob({title:'Remote Engineer',company:'Example',location:'Remote, United States',description:'Work remotely with our team.',source_url:'https://jobs.example.com/roles/123',apply_url:'https://jobs.example.com/roles/123',source_key:'remote_ats',remote:true}),null));
+
+test('decodes backslash-escaped HTML fragments and removes social controls',()=>{
+ const dirty='\\<li>Save\\</a> Share\\</a> Facebook X LinkedIn Email Copy link\\</li>\n\\<p>Register for our free webinar and learn how to get hired.\\</p>\n\\<p>At Example Ltd, we build useful products.\\</p>\n\\<p>View All Jobs at Example Ltd\\</a>\\</p>\n\\<li>Get new UX jobs on Telegram\\</li>\n\\<li>@yahoo.com\\</li>\n\\<li>@outlook.com\\</li>';
+ const cleanHtml=sanitizeDescriptionHtml(dirty);
+ assert.match(cleanHtml,/At Example Ltd/);
+ assert.doesNotMatch(cleanHtml,/Save|Share|Facebook|LinkedIn|Copy link|Telegram|yahoo\.com|outlook\.com|webinar|View All Jobs/);
+});
+test('extracts a genuine employer application email from method of application',()=>{
+ const body='<h2>Method of Application</h2><p>Send your CV and Portfolio to <strong>recruitment@fwcafrica.com</strong> with the subject line: Senior Design &amp; Detailing Architect.</p><li>Get new jobs on Telegram</li>';
+ assert.match(extractApplicationDestination(body,'Senior Design & Detailing Architect'),/^mailto:recruitment@fwcafrica\.com/);
+});
+test('normalizeJob fills an empty application destination from job description',()=>{
+ const j=normalizeJob({title:'Senior Design Architect',company:'Example Ltd',location:'Lagos',description:'<h2>Method of Application</h2><p>Send CV to recruitment@example.org</p>',source_url:'https://www.myjobmag.com/jobs/example',source_key:'myjobmag'});
+ assert.match(j.apply_url,/^mailto:recruitment@example\.org/);
+});

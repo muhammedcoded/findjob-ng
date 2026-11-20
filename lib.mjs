@@ -11,12 +11,20 @@ export function decodeEntities(value=''){
   .replace(/&#x([a-f\d]+);/gi,(_,x)=>String.fromCodePoint(Math.min(1114111,parseInt(x,16))));
 }
 
-export const textFromHtml=(html='')=>decodeEntities(String(html??'')
+export function normalizeEscapedMarkup(value=''){
+ return decodeEntities(String(value??''))
+  .replace(/\\(?=<|>)/g,'')
+  .replace(/\\n/g,'\n').replace(/\\r/g,'')
+  .replace(/\\\s*(?=\r?\n)/g,'')
+  .replace(/&nbsp;|&#160;/gi,' ');
+}
+
+export const textFromHtml=(html='')=>normalizeEscapedMarkup(html)
  .replace(/<!--[\s\S]*?-->/g,' ')
  .replace(/<(script|style|noscript|svg|iframe|object|form|nav|header|footer)\b[^>]*>[\s\S]*?<\/\1\s*>/gi,' ')
- .replace(/<br\s*\/?>/gi,'\n')
+ .replace(/<br\s*\/?\s*>/gi,'\n')
  .replace(/<\/(p|div|li|h[1-6]|tr|section|article)>/gi,'\n')
- .replace(/<[^>]*>/g,' '))
+ .replace(/<[^>]*>/g,' ')
  .replace(/\u00a0/g,' ')
  .replace(/[ \t]+\n/g,'\n')
  .replace(/\n[ \t]+/g,'\n')
@@ -41,43 +49,90 @@ export function applicationUrlOk(value){
 }
 
 export function sanitizeDescriptionHtml(input='',max=30000){
- let html=String(input??'').slice(0,max*3);
+ let html=normalizeEscapedMarkup(input).slice(0,max*3);
  if(!/<[a-z][\s\S]*>/i.test(html)){
-  const lines=decodeEntities(html).replace(/\r/g,'').split('\n').map(x=>x.trim()).filter(Boolean);
+  const lines=html.replace(/\r/g,'').split('\n').map(x=>x.trim()).filter(Boolean);
   const blocks=[];let bullets=[];
   const flush=()=>{if(bullets.length){blocks.push('<ul>'+bullets.map(x=>`<li>${escapeHtml(x.replace(/^[-*•]\s*/,''))}</li>`).join('')+'</ul>');bullets=[];}};
   for(const line of lines){
+   if(/^(?:save\s+share\s+facebook\s+x\s+linkedin\s+email\s+copy link|get new .* jobs on telegram|signup and complete your profile|@(?:yahoo|outlook)\.com)$/i.test(line))continue;
+   if(/free webinar|view all jobs at|report job|copy link/i.test(line))continue;
    if(/^[-*•]\s+/.test(line)){bullets.push(line);continue;}
    flush();
-   if(/^([A-Z][A-Z\s&/()-]{2,}|requirements|responsibilities|benefits|method of application)\s*:?\s*$/i.test(line))blocks.push(`<h3>${escapeHtml(line.replace(/:$/,''))}</h3>`);
+   if(/^([A-Z][A-Z\s&/()-]{2,}|requirements|responsibilities|benefits|method of application|key responsibilities|why join us)\s*:?\s*$/i.test(line))blocks.push(`<h3>${escapeHtml(line.replace(/:$/,''))}</h3>`);
    else blocks.push(`<p>${escapeHtml(line)}</p>`);
   }
   flush();html=blocks.join('');
  }
  html=html
   .replace(/<!--[\s\S]*?-->/g,'')
-  .replace(/<(script|style|noscript|iframe|object|embed|form|svg|math|template)\b[^>]*>[\s\S]*?<\/\1\s*>/gi,'')
-  .replace(/<(script|style|noscript|iframe|object|embed|form|svg|math|template)\b[^>]*\/?>/gi,'')
-  .replace(/<\s*(ins|div)[^>]*(?:ad|advert|promo|social|share)[^>]*>[\s\S]*?<\/\s*\1\s*>/gi,'');
+  .replace(/<(script|style|noscript|iframe|object|embed|form|svg|math|template|nav|header|footer)\b[^>]*>[\s\S]*?<\/\1\s*>/gi,'')
+  .replace(/<(script|style|noscript|iframe|object|embed|form|svg|math|template)\b[^>]*\/?\s*>/gi,'')
+  .replace(/<(?:div|section|aside)[^>]*(?:class|id)=["'][^"']*(?:ad|advert|promo|social|share|newsletter|subscribe|related|telegram)[^"']*["'][^>]*>[\s\S]*?<\/(?:div|section|aside)\s*>/gi,'')
+  .replace(/<(li|p|div)\b[^>]*>[\s\S]*?<\/\1\s*>/gi,block=>/(?:Get new [\s\S]{0,300}?jobs on Telegram|Signup and complete your profile|View All Jobs at|free webinar|@(?:yahoo|outlook)\.com|Report job)/i.test(textFromHtml(block))?'':block)
+  .replace(/<a\b[^>]*(?:href=["'](?:https?:)?\/\/(?:www\.)?(?:facebook|linkedin|twitter|x\.com|t\.me|telegram)\.[^"']*["'])[^>]*>[\s\S]*?<\/a>/gi,'')
+  .replace(/Save\s*<\/a>\s*Share\s*<\/a>[\s\S]{0,240}?(?:Copy link|Report job)/gi,'')
+  .replace(/Save\s+Share\s+Facebook\s+X\s+LinkedIn\s+Email\s+Copy link/gi,'')
+  .replace(/<li\b[^>]*>\s*@(?:yahoo|outlook)\.com\s*<\/li>/gi,'')
+  .replace(/(?:Advertisement|Sponsored Advertisement|Build your CV for free\.?)/gi,'');
  const allowed=new Set(['p','br','strong','b','em','i','u','ul','ol','li','h2','h3','h4','blockquote','a']);
- html=html.replace(/<\/?([a-z][a-z0-9]*)\b([^>]*)>/gi,(whole,tag,attrs)=>{
-  tag=tag.toLowerCase();
-  if(!allowed.has(tag))return '';
-  if(whole.startsWith('</'))return `</${tag}>`;
+ const stack=[];
+ html=html.replace(/<\/?([a-z][a-z0-9]*)\b([^>]*)>/gi,(whole,rawTag,attrs)=>{
+  const tag=rawTag.toLowerCase();if(!allowed.has(tag))return '';
+  if(whole.startsWith('</')){
+   const index=stack.lastIndexOf(tag);if(index<0)return '';
+   let close='';for(let i=stack.length-1;i>=index;i--)close+=`</${stack[i]}>`;
+   stack.length=index;return close;
+  }
   if(tag==='br')return '<br>';
   if(tag==='a'){
    const href=attrs.match(/\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
-   const raw=decodeEntities(href?.[1]||href?.[2]||href?.[3]||'').trim();
-   if(!applicationUrlOk(raw))return '<span>';
-   try{if(['myjobmag.com','www.myjobmag.com'].includes(new URL(raw).hostname))return '<span>';}catch{}
-   return `<a href="${escapeHtml(raw)}" target="_blank" rel="noopener noreferrer nofollow">`;
+   const raw=normalizeEscapedMarkup(href?.[1]||href?.[2]||href?.[3]||'').trim();
+   if(!applicationUrlOk(raw))return '';
+   try{if(['myjobmag.com','www.myjobmag.com'].includes(new URL(raw).hostname))return '';}catch{}
+   stack.push(tag);return `<a href="${escapeHtml(raw)}" target="_blank" rel="noopener noreferrer nofollow">`;
   }
-  return `<${tag}>`;
+  stack.push(tag);return `<${tag}>`;
  });
- html=html.replace(/<\/span>/gi,'</span>').replace(/<span>/gi,'');
- html=html.replace(/(?:Advertisement|Sponsored Advertisement|Build your CV for free\.?)/gi,'');
+ for(let i=stack.length-1;i>=0;i--)html+=`</${stack[i]}>`;
  return html.trim().slice(0,max);
 }
+
+export function extractApplicationDestination(description='',title=''){
+ const html=normalizeEscapedMarkup(description);
+ const plain=textFromHtml(html);
+ const heading=/method of application|how to apply|application instructions|application process|to apply\b/i;
+ const match=heading.exec(plain);
+ let textRegion=match?plain.slice(match.index,match.index+5000):'';
+ let htmlRegion=html;
+ if(match){
+  const terms=html.search(/method\s+of\s+application|how\s+to\s+apply|application\s+instructions|application\s+process/i);
+  if(terms>=0)htmlRegion=html.slice(terms,terms+12000);
+ }else{
+  const emailContext=/(?:send|email|forward|submit|apply|application|cv|resume|portfolio)[^\n]{0,180}[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i.exec(plain);
+  if(emailContext)textRegion=plain.slice(Math.max(0,emailContext.index-100),emailContext.index+700);
+  else textRegion='';
+ }
+ const social=/facebook|linkedin|twitter|x\.com|telegram|t\.me|doubleclick|googlesyndication|googleadservices|myjobmag/i;
+ const emailCandidates=[...textRegion.matchAll(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi)];
+ for(const found of emailCandidates){
+  const email=found[0].toLowerCase(),nearby=textRegion.slice(Math.max(0,found.index-150),Math.min(textRegion.length,found.index+180));
+  if(social.test(email)||/^(?:noreply|no-reply|example)@/.test(email)||/@(?:yahoo|outlook|gmail)\.com$/i.test(email)&&!/(?:send|email|forward|submit|apply|application|cv|resume|portfolio)/i.test(nearby))continue;
+  const subject=encodeURIComponent(String(title||'Job application').replace(/[\r\n]+/g,' ').slice(0,120));
+  return `mailto:${email}?subject=${subject}`;
+ }
+ const anchorRegion=match?htmlRegion:html;
+ const anchors=[...anchorRegion.matchAll(/<a\b([^>]*)href\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))[^>]*>([\s\S]*?)<\/a>/gi)];
+ for(const a of anchors){
+  const href=normalizeEscapedMarkup(a[2]||a[3]||a[4]||'').trim();
+  const label=textFromHtml(a[5]);
+  if(!urlOk(href)||social.test(href)||!/apply|application|career|recruit|submit|vacancy|job/i.test(label))continue;
+  try{if(social.test(new URL(href).hostname))continue;}catch{continue;}
+  return href;
+ }
+ return '';
+}
+
 function escapeHtml(s=''){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;");}
 
 export function classify(title='',body='',location=''){
@@ -104,7 +159,9 @@ export const excerpt=(body,n=150)=>{const s=clean(body,1500);return s.length>n?s
 export function normalizeJob({title,company,location,description,apply_url,source_url,source_key,external_id,posted_at,expires_at,remote=false}){
  title=clean(title,180);company=clean(company||'Employer not specified',130);location=clean(location||'Nigeria',130);
  const safeDescription=sanitizeDescriptionHtml(description||'',24000);
- const apply=String(apply_url||'').trim(),source=String(source_url||'').trim();
+ const suppliedApply=String(apply_url||'').trim(),source=String(source_url||'').trim();
+ const sourceListing=source_key==='myjobmag'||source_key==='jobicy';
+ const apply=(suppliedApply&&applicationUrlOk(suppliedApply)&&!(sourceListing&&suppliedApply===source)?suppliedApply:extractApplicationDestination(safeDescription,title));
  if(!title||title.length<5||!urlOk(source)||!applicationUrlOk(apply))return null;
  let available=eligibility([location,textFromHtml(safeDescription).slice(0,1800),title].join(' '));
  if(source_key==='myjobmag')available='nigeria';

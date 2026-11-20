@@ -89,3 +89,76 @@ body.content-route .center-ad-wrap{max-width:1100px}body.content-route .columns{
 .metrics-filter{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}.metrics-filter select{padding:9px;border:1px solid #d7e4da;border-radius:7px;background:#fff}.metrics-panel{margin:20px 0;padding:18px;border:1px solid #e2ebe4;border-radius:10px;background:#fff}.metrics-panel h4{margin:0 0 15px}.metric-day{display:grid;grid-template-columns:110px minmax(70px,1fr) 90px 100px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #f0f4f1;font-size:11px}.metric-bars{height:9px;background:#edf3ee;border-radius:9px;overflow:hidden}.metric-bars i{display:block;height:100%;background:#159653;border-radius:9px}.metric-day b,.metric-day small{font-size:10px;color:#5c7061}.metrics-stats .stat b{font-variant-numeric:tabular-nums}
 @media(max-width:760px){.footer-grid{grid-template-columns:1fr 1fr;gap:25px}.footer-about{grid-column:1/-1}body.content-route .detail{padding:22px 18px}.metric-day{grid-template-columns:75px minmax(50px,1fr) 68px 80px;gap:6px}.metric-day small{font-size:9px}}
 @media(max-width:520px){.footer-grid{grid-template-columns:1fr;gap:20px}.footer-about{grid-column:auto}.footer{padding:30px 0 24px}.share-bar{gap:6px}.share-bar a,.share-bar button{padding:7px 9px}.metrics-filter{width:100%;justify-content:space-between}.metrics-filter select{flex:1}.metric-day{grid-template-columns:65px minmax(35px,1fr) 55px}.metric-day small{grid-column:3}.center-ad-wrap{padding-top:10px}body.content-route .columns{width:calc(100% - 20px);padding-top:12px}}
+
+
+/* v2.3.1: remove the desktop width cap from the staff workspace. */
+body.staff-route .columns{width:100%;max-width:none;margin:0;padding:24px 24px 48px}
+body.staff-route #content.panel{width:100%;max-width:none}
+body.staff-route .dashboard{width:100%;max-width:none}
+@media(max-width:600px){body.staff-route .columns{width:100%;max-width:none;margin:0;padding:10px}}
+
+/* v2.4 admin workspace, readable descriptions, and responsive controls */
+body.staff-route .columns{width:100%;max-width:none;margin:0;padding:18px 20px 42px}
+body.staff-route .dashboard{width:100%;max-width:none;min-width:0;padding:24px 26px;margin:0;border-radius:14px}
+body.staff-route .dashboard-layout{display:grid;grid-template-columns:218px minmax(0,1fr);gap:24px;align-items:start;margin-top:22px;min-width:0}
+body.staff-route .dash-nav{display:flex;flex-direction:column;flex-wrap:nowrap;gap:6px;margin:0;padding:0 12px 0 0;border:0;border-right:1px solid #e4ece6;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto}
+body.staff-route .dash-nav button{width:100%;min-height:42px;text-align:left;padding:11px 13px;border-radius:8px;background:#fff;border:1px solid transparent;color:#344d3b;font-size:13px}
+body.staff-route .dash-nav button:hover{background:#f1f8f3;border-color:#dce9df}
+body.staff-route .dash-nav button.active{background:#e7f7eb;border-color:#a5d8b2;color:#075d35;font-weight:850}
+body.staff-route #dash-content{min-width:0;width:100%;overflow-wrap:anywhere}
+body.staff-route .dashboard h3{color:#15251a}
+body.staff-route .settings-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+body.staff-route .setting-card,body.staff-route .ad-group,body.staff-route .ad-form{min-width:0;max-width:100%}
+body.staff-route .setting-card input:not([type=checkbox]):not([type=file]),body.staff-route .setting-card select,body.staff-route .setting-card textarea,body.staff-route .ad-form input,body.staff-route .ad-form select,body.staff-route .ad-form textarea{width:100%;max-width:100%;min-width:0}
+body.staff-route .ad-group .settings-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+body.staff-route .ad-form .field.wide{grid-column:1/-1}
+body.staff-route .ad-form .field{min-width:0}
+body.staff-route .ad-form input[type=file]{font-size:12px;padding:9px}
+body.staff-route .ad-form .mini{max-width:100%}
+body.staff-route .ad-form .field textarea{min-height:100px}
+body.staff-route .ad-group h4{margin-top:24px}
+body.staff-route .job-status-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+body.staff-route .job-status-card{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:13px 15px;border:1px solid #dce8df;background:#fff;border-radius:9px;color:#435c49;text-align:left;min-width:0}
+body.staff-route .job-status-card span{font-size:11px;font-weight:750}
+body.staff-route .job-status-card b{font-size:25px;color:#111d14;font-variant-numeric:tabular-nums}
+body.staff-route .job-status-card.active{border-color:#74c38c;background:#effaf1;box-shadow:inset 0 0 0 1px #b9e5c4}
+body.staff-route .jobs-heading{align-items:center}
+body.staff-route .job-actions-top{display:flex;gap:8px;flex-wrap:wrap}
+body.staff-route .application-ok{color:#08763f;font-weight:750;font-size:11px}
+body.staff-route .application-missing{color:#a45d00;font-weight:750;font-size:11px}
+body.staff-route .rich-editor-field{grid-column:1/-1;min-width:0}
+body.staff-route .rich-toolbar{display:flex;gap:6px;flex-wrap:wrap;padding:8px;border:1px solid #d7e4da;border-bottom:0;border-radius:8px 8px 0 0;background:#f6faf7}
+body.staff-route .rich-toolbar button{border:1px solid #d7e4da;background:#fff;color:#16251a;border-radius:5px;padding:7px 10px;font-size:12px;font-weight:700}
+body.staff-route .rich-toolbar button:hover{background:#eaf7ed}
+body.staff-route .rich-editor,body.staff-route .rich-source{width:100%;min-height:360px;padding:16px;border:1px solid #cbdccf;border-radius:0 0 8px 8px;background:#fff;color:#111;font:14px/1.75 Inter,ui-sans-serif,system-ui,sans-serif;overflow-wrap:anywhere;white-space:normal}
+body.staff-route .rich-editor:focus{outline:3px solid #b6e8c2;outline-offset:1px}
+body.staff-route .rich-editor h2,body.staff-route .rich-editor h3{color:#111}
+body.staff-route .rich-editor p{margin:0 0 13px}
+body.staff-route .rich-editor ul,body.staff-route .rich-editor ol{padding-left:25px}
+body.staff-route .rich-source{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;white-space:pre-wrap}
+body.staff-route .application-hint{margin-top:-4px;color:#58685d}
+.job-description-body{color:#111!important}
+.job-description-body p,.job-description-body li,.job-description-body strong,.job-description-body b{color:#111}
+.job-description-body h2,.job-description-body h3,.job-description-body h4{color:#111}
+.adunit .adlabel,.adunit .ad-placeholder,.adunit .ad-placeholder strong,.adunit .ad-placeholder small{color:#111}
+.cat{cursor:pointer;pointer-events:auto;position:relative;z-index:1;text-decoration:none}
+@media(max-width:1150px){body.staff-route .ad-group .settings-grid,body.staff-route .settings-grid{grid-template-columns:minmax(0,1fr)}body.staff-route .ad-form .field.wide{grid-column:auto}}
+@media(max-width:900px){body.staff-route .dashboard-layout{grid-template-columns:180px minmax(0,1fr);gap:16px}body.staff-route .dashboard{padding:18px}body.staff-route .job-status-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:680px){body.staff-route .columns{padding:8px 8px 24px}body.staff-route .dashboard{padding:14px;border-radius:10px}body.staff-route .dashboard-layout{grid-template-columns:minmax(0,1fr);gap:14px;margin-top:14px}body.staff-route .dash-nav{position:static;max-height:none;overflow:visible;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:0 0 12px;border-right:0;border-bottom:1px solid #e4ece6}body.staff-route .dash-nav button{min-height:40px;padding:9px 10px;font-size:12px}body.staff-route .job-status-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}body.staff-route .job-status-card{padding:11px}body.staff-route .job-status-card b{font-size:22px}body.staff-route .jobs-heading{align-items:stretch}body.staff-route .job-actions-top{width:100%}body.staff-route .job-actions-top button{flex:1}body.staff-route .bulk-toolbar{align-items:flex-start}body.staff-route .bulk-toolbar button{flex:1}body.staff-route .dash-table{min-width:760px}body.staff-route .rich-editor,body.staff-route .rich-source{min-height:300px;padding:12px;font-size:14px}body.staff-route .rich-toolbar button{padding:7px 8px}body.staff-route .ad-group .settings-grid{grid-template-columns:minmax(0,1fr)}body.staff-route .ad-form .field.wide{grid-column:auto}}
+@media(max-width:420px){body.staff-route .dashbar{align-items:flex-start}body.staff-route .dashbar .ghost-btn{padding:8px 10px}body.staff-route .job-status-card span{font-size:10px}body.staff-route .job-status-card b{font-size:20px}body.staff-route .dash-nav{grid-template-columns:1fr 1fr}}
+
+@media(max-width:600px){
+ body:not(.staff-route) .container{width:calc(100% - 20px)}
+ body:not(.staff-route) .columns{grid-template-columns:minmax(0,1fr);gap:12px}
+ body:not(.staff-route) #content.panel{min-width:0;width:100%}
+ body:not(.staff-route) .left-column,body:not(.staff-route) .right-column{min-width:0;width:100%}
+ body:not(.staff-route) .right-column{grid-template-columns:minmax(0,1fr)}
+ body:not(.staff-route) .categories #category-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+ body:not(.staff-route) .cat{min-width:0;padding:11px 10px;font-size:11px}
+ body:not(.staff-route) .job{grid-template-columns:18px minmax(0,1fr);gap:7px;padding:14px 12px}
+ body:not(.staff-route) .job .apply-btn{grid-column:2;justify-self:start;margin-top:7px}
+ body:not(.staff-route) .detail{padding:18px 14px}
+ body:not(.staff-route) .detail-meta{gap:8px;font-size:11px}
+ body:not(.staff-route) .share-bar{gap:6px}
+ body:not(.staff-route) .share-bar a,body:not(.staff-route) .share-bar button{padding:7px 8px;font-size:10px}
+}
