@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {classify,clean,slugify,normalizeJob,parseRss,urlOk,fingerprint,eligibility,CATEGORIES} from '../lib.mjs';
+import {classify,clean,slugify,normalizeJob,parseRss,urlOk,applicationUrlOk,sanitizeDescriptionHtml,fingerprint,eligibility,CATEGORIES} from '../lib.mjs';
 test('correct graduate category before bank',()=>assert.equal(classify('Access Bank Graduate Trainee'), 'Graduate Jobs'));
 test('technology detection',()=>assert.equal(classify('Senior React Developer'),'Technology Jobs'));
 test('remote category by location',()=>assert.equal(classify('Customer Support','','Remote'),'Remote Jobs'));
@@ -17,5 +17,14 @@ test('restricted eligibility',()=>assert.equal(eligibility('USA only'),'restrict
 test('rss parser with CDATA',()=>{const r=parseRss('<rss><channel><item><title><![CDATA[Software Developer]]></title><link>https://example.com/job</link><description><![CDATA[<p>React engineer</p>]]></description></item></channel></rss>');assert.equal(r.length,1);assert.equal(r[0].description,'React engineer')});
 test('normalizes a Nigeria job',()=>{const j=normalizeJob({title:'Graduate Banking Trainee',company:'Example',location:'Lagos',description:'Open for Nigerian applicants',source_url:'https://example.com/job',source_key:'myjobmag'});assert.equal(j.category,'Graduate Jobs');assert.equal(j.eligibility,'nigeria')});
 test('rejects bad links',()=>assert.equal(normalizeJob({title:'test title',source_url:'file:///etc/passwd'}),null));
-test('does not publish foreign-restricted Jobicy job',()=>assert.equal(normalizeJob({title:'Senior Engineer',company:'Example',location:'US only',description:'US only',source_url:'https://jobicy.com/job',source_key:'jobicy'}),null));
+test('country restrictions take priority over worldwide wording',()=>assert.equal(eligibility('Worldwide remote, but applicants must be based in the United States'),'restricted'));
+test('rejects worldwide jobs that exclude a country',()=>assert.equal(eligibility('Work from anywhere worldwide except the United States'),'restricted'));
 test('categories are distinct',()=>assert.equal(new Set(CATEGORIES).size,CATEGORIES.length));
+
+test('accepts direct employer email application URLs',()=>assert.equal(applicationUrlOk('mailto:recruitment@example.com?subject=Application'),true));
+test('rejects unsafe application URLs',()=>assert.equal(applicationUrlOk('javascript:alert(1)'),false));
+test('sanitizes rich job descriptions while preserving lists',()=>{const html=sanitizeDescriptionHtml('<h3>REQUIREMENTS</h3><ul><li>Degree</li></ul><script>alert(1)</script><a href="javascript:alert(1)">bad</a>');assert.match(html,/<h3>REQUIREMENTS<\/h3>/);assert.match(html,/<li>Degree<\/li>/);assert.doesNotMatch(html,/script|javascript|alert/);});
+
+test('accepts free employer ATS jobs explicitly open worldwide',()=>{const j=normalizeJob({title:'Remote Product Designer',company:'Example',location:'Home based - Worldwide',description:'Work from anywhere with our team.',source_url:'https://jobs.example.com/roles/123',apply_url:'https://jobs.example.com/roles/123',source_key:'remote_ats',remote:true});assert.ok(j);assert.equal(j.eligibility,'global');assert.equal(j.apply_url,j.source_url);});
+test('rejects free ATS remote jobs with country restrictions even if worldwide is also mentioned',()=>assert.equal(normalizeJob({title:'Remote Engineer',company:'Example',location:'Worldwide',description:'Applicants must be based in the United States.',source_url:'https://jobs.example.com/roles/123',apply_url:'https://jobs.example.com/roles/123',source_key:'remote_ats',remote:true}),null));
+test('rejects remote ATS jobs that do not explicitly say worldwide',()=>assert.equal(normalizeJob({title:'Remote Engineer',company:'Example',location:'Remote, United States',description:'Work remotely with our team.',source_url:'https://jobs.example.com/roles/123',apply_url:'https://jobs.example.com/roles/123',source_key:'remote_ats',remote:true}),null));

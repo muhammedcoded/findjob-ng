@@ -24,7 +24,7 @@ create table if not exists public.sources (
  last_error text, last_imported integer not null default 0
 );
 insert into public.sources(source_key,title,enabled,auto_publish) values
- ('myjobmag','MyJobMag Nigeria RSS',true,false),('jobicy','Jobicy global remote API',true,false)
+ ('myjobmag','MyJobMag Nigeria RSS',true,false),('remote_ats','Free employer remote career feeds',true,false)
 on conflict(source_key) do nothing;
 create table if not exists public.ads (
  id uuid primary key default gen_random_uuid(), slot text not null unique,
