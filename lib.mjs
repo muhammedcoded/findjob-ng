@@ -118,8 +118,7 @@ export function extractApplicationDestination(description='',title=''){
  for(const found of emailCandidates){
   const email=found[0].toLowerCase(),nearby=textRegion.slice(Math.max(0,found.index-150),Math.min(textRegion.length,found.index+180));
   if(social.test(email)||/^(?:noreply|no-reply|example)@/.test(email)||/@(?:yahoo|outlook|gmail)\.com$/i.test(email)&&!/(?:send|email|forward|submit|apply|application|cv|resume|portfolio)/i.test(nearby))continue;
-  const subject=encodeURIComponent(String(title||'Job application').replace(/[\r\n]+/g,' ').slice(0,120));
-  return `mailto:${email}?subject=${subject}`;
+  return `mailto:${email}`;
  }
  const anchorRegion=match?htmlRegion:html;
  const anchors=[...anchorRegion.matchAll(/<a\b([^>]*)href\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))[^>]*>([\s\S]*?)<\/a>/gi)];

@@ -1,11 +1,11 @@
-# Findjob.ng v2.4.0: Job Board + CMS + Advertising + Metrics + Admin Repair
+# Findjob.ng v2.6.0: Job Board + Employer Recruitment Portal + Applications + Resume Match
 
-**Production-oriented application. External service behaviour still needs to be verified after deployment.** Public visitors search without sign-in. Supabase Auth is only for staff. The public website uses the green/white design and advertising columns. The staff area uses a separate full-width dashboard layout without public ad sidebars.
+**Production-oriented application. External service behaviour still needs to be verified after deployment.** Public visitors search without sign-in. Supabase Auth is used for staff and employer accounts. The public website uses the green/white design and advertising columns. The staff area uses a separate full-width dashboard layout without public ad sidebars.
 
 ## What's included
 
 - Public homepage with keyword search, 30 jobs per page, category filters and sorting. The public copy does not describe ordinary keyword search as an AI service.
-- Job detail pages retain full formatted vacancy descriptions. Apply Now opens an extracted employer application page or a Gmail compose window for email applications. If no direct employer destination is available, the page does not redirect applicants to the source job board.
+- Job detail pages retain full formatted vacancy descriptions. Apply Now opens an extracted employer application URL or a simple `mailto:` link for email applications, without a prefilled subject or message. If no direct employer destination is available, the page does not redirect applicants to the source job board.
 - MyJobMag Nigeria RSS importer that opens each original job page to extract the full description, job metadata and direct employer application email/link. Existing imported records are enriched by fingerprint instead of duplicated. Worldwide remote jobs are fetched from free public employer career feeds on Greenhouse, Lever and Ashby. No paid API key is required. The default employer boards are Canonical and Welo Global, and only fully remote jobs explicitly open Worldwide, Anywhere or Work from Anywhere are accepted.
 - Admin dashboard: left-side navigation, full-width workspace, total job counts, Published / Pending Review / Draft / Rejected / Expired / Trash filters, recoverable trash, job moderation, advertising placements, automatic sidebar ad rotation, metrics, separate sidebar widgets, editor team, branding, header/footer menus, custom pages, blog, SEO and settings.
 - Editor dashboard: pending/review/publish/reject jobs, create/edit pages and blog posts. Editors cannot alter sources, team, ads, site settings, or delete jobs/pages.
@@ -118,3 +118,56 @@ Before production launch manually verify: actual Admin and Editor sign-in; real 
 ## v2.4.0 update
 
 Run `sql/upgrade-v2.4-admin-repair.sql` in Supabase SQL Editor after deploying v2.4.0. It repairs the ad inventory and storage bucket, installs metrics support, and enables recoverable Trash for jobs. The admin dashboard now has a left navigation sidebar, job status counts, mobile layouts, and a visual/HTML job-description editor. Use the Jobs tab's **Clean imported descriptions** action once to repair existing MyJobMag records and extract employer application destinations where the source includes them.
+
+
+## v2.5.0 employer, advertising and navigation update
+
+Run `sql/upgrade-v2.5-employers-navigation-ads.sql` in Supabase SQL Editor after the v2.4 migration. It adds employer accounts, wallets, Paystack payment records, Unlimited subscriptions, candidate search credits, employer-owned jobs, flexible ad formats/placements, and navigation settings. The migration is idempotent.
+
+### New Railway variables
+
+Keep all existing variables. Add:
+
+- `SUPABASE_ANON_KEY`: Supabase project's publishable/anon key. It is used by employer signup and sign-in. Keep `SUPABASE_SERVICE_ROLE_KEY` private and unchanged.
+- `PAYSTACK_SECRET_KEY`: Paystack secret key. Use the test secret key while testing and the live secret key only when ready to accept real payments.
+- `PAYSTACK_WEBHOOK_SECRET`: Set this to the same Paystack secret key. Paystack signs webhook requests with the API secret key.
+
+No Paystack public key is needed because transaction initialization and verification happen on the server. Do not put Paystack secret keys or Supabase service-role keys in GitHub or browser code.
+
+### Paystack webhook
+
+In the Paystack dashboard, configure this webhook URL:
+
+`https://YOUR-RAILWAY-DOMAIN/api/payments/paystack/webhook`
+
+The server validates the `x-paystack-signature`, independently verifies successful transactions with Paystack, checks amount/currency/employer email, and settles each reference only once. The employer checkout returns to `/employer` after payment. Use Paystack test mode first.
+
+### Employer plans
+
+- Pay as you go: ₦5,500 per job credit. Employers fund a wallet and one credit is deducted when they submit a job.
+- Unlimited: ₦50,500 per month. The default longer-term discounts are 5% for 3 months, 10% for 6 months, and 15% for 12 months. Admins can change these percentages in Admin → Settings → Employer Plan Discounts. Durations from 1 to 12 months are available.
+- Each employer job is submitted to Admin review. When approved, the listing receives a 3-month expiry unless the employer chose a custom deadline, and a 3-week featured period.
+- Unlimited subscriptions include 10 candidate search credits. The candidate search reads only opt-in rows in `candidate_profiles`. This release adds the directory table and employer search UI, but it does not yet include a public candidate registration/CV upload flow, so the directory will remain empty until candidate profiles are added through a future candidate onboarding flow or by an authorized back-office process.
+
+### Employer authentication
+
+Employer registration uses Supabase Auth. Configure the Supabase Auth Site URL to the Railway URL and ensure that URL is allowed for redirects. If email confirmation is enabled, employers must confirm their email before signing in.
+
+### Advertising and navigation
+
+Admin → Advertising now supports dynamically adding left and right sidebar placements, removing custom sidebar placements, display sizes (leaderboard, rectangles, square, skyscraper, wide skyscraper, mobile banner and responsive), and page targeting. In-content placements are rendered on job details and articles. Admin → Settings includes drag-and-drop header/footer menu builders, up/down controls, and custom head/body code fields. The public `/advertise` page explains display banners, sponsored job listings, and content/employer-brand partnerships, with `ads@findjob.ng` as the contact address.
+
+### Verification limits
+
+The local test suite covers application logic and syntax. Live Supabase Auth, Paystack test transactions/webhooks, employer account email confirmation, actual ad delivery and candidate directory data must be tested after the new migration and Railway variables are configured. Do not accept live payments until Paystack test-mode checkout and webhook settlement have both been confirmed.
+
+### Employer promotion and candidate directory notes
+
+Featured employer listings are automatically prioritised in Findjob.ng job feeds for the configured featured period. Email, partner-site and social promotion are operationally coordinated by the Findjob.ng team and are not automatically sent by the application in this release. Candidate search credits are tracked and charged only when searchable opt-in profiles are returned. A public candidate signup/CV onboarding flow is a separate next step; the candidate directory will be empty until profiles are added.
+
+
+## v2.6 employer recruitment portal
+
+Employer pages are `/become-an-employer` (plans), `/employersignup` (registration), `/login` (employer login), and `/employer-dashboard` (private workspace). Employers can choose an internal Findjob.ng application form or an external email/application URL for each vacancy. Internal applications are stored in a private Supabase table, CV files are stored in the private `findjob-private` bucket, and employers can download CVs and export application details to XLSX. Resume match scores are keyword-overlap assistance only and must not be used as an automated hiring decision.
+
+Run `sql/upgrade-v2.6-employer-applications.sql` after the earlier migrations. Enable Supabase email confirmations and allow the `/login?confirmed=1` redirect. Add `SUPABASE_ANON_KEY`, `PAYSTACK_SECRET_KEY`, and optionally `PAYSTACK_WEBHOOK_SECRET` in Railway. Configure the Paystack webhook at `/api/payments/paystack/webhook`. Test Paystack in test mode before switching to live credentials.

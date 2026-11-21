@@ -43,3 +43,7 @@ test('normalizeJob fills an empty application destination from job description',
  const j=normalizeJob({title:'Senior Design Architect',company:'Example Ltd',location:'Lagos',description:'<h2>Method of Application</h2><p>Send CV to recruitment@example.org</p>',source_url:'https://www.myjobmag.com/jobs/example',source_key:'myjobmag'});
  assert.match(j.apply_url,/^mailto:recruitment@example\.org/);
 });
+test('extracts Gmail application addresses when they are stated in application instructions',()=>{
+ const body='<h2>Method of Application</h2><p>Send your CV to hiringteam@gmail.com to apply.</p>';
+ assert.equal(extractApplicationDestination(body,'Support Officer'),'mailto:hiringteam@gmail.com');
+});

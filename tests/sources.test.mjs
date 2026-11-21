@@ -16,7 +16,7 @@ test('extracts full MyJobMag job content and employer email application',()=>{
  const job=parseMyJobMagDetail(page,'Senior Design & Detailing Architect at First World Communities Ltd','https://www.myjobmag.com/job/example');
  assert.ok(job);assert.equal(job.title,'Senior Design & Detailing Architect');assert.equal(job.company,'First World Communities Ltd');assert.equal(job.location,'Lagos');
  assert.match(job.description,/KEY RESPONSIBILITIES/);assert.match(job.description,/Bachelor/);assert.doesNotMatch(job.description,/Jobs You Might Be Interested/);
- assert.match(job.apply_url,/^mailto:recruitment@fwcafrica\.com\?subject=/);
+ assert.equal(job.apply_url,'mailto:recruitment@fwcafrica.com');
 });
 
 test('recognizes explicit worldwide location wording',()=>{assert.equal(explicitWorldwide('Home based - Worldwide'),true);assert.equal(explicitWorldwide('Remote - Europe'),false);assert.equal(explicitWorldwide('Remote, Worldwide / Remote - Europe'),true);});

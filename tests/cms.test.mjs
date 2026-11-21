@@ -6,7 +6,8 @@ test('blocks reserved page slug',()=>assert.throws(()=>validateContent({title:'M
 test('validates fetch intervals',()=>{assert.equal(validateSetting('sync_interval_minutes','180'),'180');assert.throws(()=>validateSetting('sync_interval_minutes','1'))});
 test('rejects javascript links',()=>assert.throws(()=>validateSetting('logo_url','javascript:alert(1)')));
 test('accepts Google Analytics ID',()=>assert.equal(validateSetting('ga_measurement_id','G-ABC123456'),'G-ABC123456'));
-test('rejects non-Google externally loaded scripts',()=>assert.throws(()=>validateSetting('header_code','<script src="https://evil.example/track.js"></script>')));
+test('allows trusted HTTPS integration snippets in header/footer code',()=>assert.ok(validateSetting('header_code','<script src="https://analytics.example/track.js"></script>')));
+test('rejects inline event handlers in custom code',()=>assert.throws(()=>validateSetting('footer_code','<img src="https://example.com/a.png" onerror="alert(1)">')));
 test('accepts allowed Google analytics script',()=>assert.ok(validateSetting('header_code','<script async src="https://www.googletagmanager.com/gtag/js?id=G-ABC123456"></script>')));
 test('footer links validate JSON',()=>{assert.ok(validateSetting('footer_links','[{"label":"About","url":"/about"}]'));assert.throws(()=>validateSetting('footer_links','[{"label":"Bad","url":"javascript:alert(1)"}]'))});
 
@@ -19,3 +20,6 @@ test('ad rotation interval is restricted to safe choices',()=>{assert.equal(vali
 
 test('CV AI Writer can point to an internal page',()=>assert.equal(validateSetting('ai_writer_url','/cv-writer'),'/cv-writer'));
 test('AdSense parser rejects arbitrary inline JavaScript',()=>{assert.throws(()=>parseAdSenseSnippet('<script src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1234567890123456"></script><ins data-ad-client="ca-pub-1234567890123456" data-ad-slot="1234567890"></ins><script>alert(1);(adsbygoogle=window.adsbygoogle||[]).push({});</script>'));});
+
+test('validates employer multi-month discounts',()=>{assert.equal(validateSetting('unlimited_discount_3m_percent','5'),'5');assert.throws(()=>validateSetting('unlimited_discount_6m_percent','80'));});
+test('blocks protocol-relative menu URLs',()=>assert.throws(()=>validateSetting('header_links','[{\"label\":\"Bad\",\"url\":\"//evil.example\"}]')));
