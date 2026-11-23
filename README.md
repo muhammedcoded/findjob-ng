@@ -178,3 +178,8 @@ Run `sql/upgrade-v2.6-employer-applications.sql` after the earlier migrations. E
 Run `sql/upgrade-v2.6.1-employer-approval.sql` once in Supabase SQL Editor after the v2.6 migration. This adds the `pending` employer approval state and initializes Facebook integration setting placeholders. Employer registrations require email confirmation and remain pending until an admin approves them from Admin Dashboard → All Users. Admins can create staff or employer accounts from All Users.
 
 The Facebook posting worker is not enabled by this release. Configure Meta Page permissions and a secure server-side posting integration before enabling automated publishing. Never put a Page Access Token in public site settings or browser code.
+
+
+## v2.6.4 employer pricing selector fix
+
+The public Become an Employer page now has a visible Unlimited subscription selector for Monthly (₦50,500) and Yearly (₦550,000). The displayed price and signup button update when the employer changes the term, and the selected term is preselected on the employer registration form. Static asset cache versions were bumped so browsers load the updated interface.
