@@ -35,7 +35,7 @@ body.staff-route #dash-content{min-width:0}
 .bulk-toolbar label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
 .bulk-toolbar input[type=checkbox],.dash-table input[type=checkbox]{width:16px;height:16px;accent-color:#078044}
 .bulk-toolbar #selected-count{font-size:12px;color:#66776a;margin-right:auto}
-.dash-table td:first-child,.dash-table th:first-child{width:42px;text-align:center}
+.dash-table.job-management-table td:first-child,.dash-table.job-management-table th:first-child{width:42px;text-align:center}
 .dash-table td:last-child{white-space:nowrap}
 .dash-table button{margin:2px}
 .job-description-body{color:#26392d;font-size:15px;line-height:1.8;overflow-wrap:anywhere}
@@ -53,6 +53,12 @@ body.staff-route #dash-content{min-width:0}
 .source-credit a{color:#64766a;text-decoration:underline}
 .no-apply{padding:12px 14px;border-radius:8px;background:#fff6e7;color:#79551a;font-size:13px;line-height:1.6}
 body.staff-route .table-wrap{max-width:100%;overflow-x:auto}
+body.staff-route .dash-table{table-layout:auto}
+body.staff-route .dash-table th,body.staff-route .dash-table td{overflow-wrap:normal;word-break:normal}
+body.staff-route .user-table{min-width:900px}
+body.staff-route .user-table td:first-child,body.staff-route .user-table th:first-child{width:20%;min-width:150px}
+body.staff-route .user-table td:nth-child(2),body.staff-route .user-table th:nth-child(2){min-width:230px}
+body.staff-route .user-table td:nth-child(3),body.staff-route .user-table th:nth-child(3){min-width:110px}
 body.staff-route .dash-table{min-width:780px;width:100%}
 body.staff-route .editor-form input,body.staff-route .editor-form textarea,body.staff-route .editor-form select{max-width:100%}
 @media(max-width:900px){

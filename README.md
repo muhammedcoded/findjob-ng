@@ -171,3 +171,10 @@ Featured employer listings are automatically prioritised in Findjob.ng job feeds
 Employer pages are `/become-an-employer` (plans), `/employersignup` (registration), `/login` (employer login), and `/employer-dashboard` (private workspace). Employers can choose an internal Findjob.ng application form or an external email/application URL for each vacancy. Internal applications are stored in a private Supabase table, CV files are stored in the private `findjob-private` bucket, and employers can download CVs and export application details to XLSX. Resume match scores are keyword-overlap assistance only and must not be used as an automated hiring decision.
 
 Run `sql/upgrade-v2.6-employer-applications.sql` after the earlier migrations. Enable Supabase email confirmations and allow the `/login?confirmed=1` redirect. Add `SUPABASE_ANON_KEY`, `PAYSTACK_SECRET_KEY`, and optionally `PAYSTACK_WEBHOOK_SECRET` in Railway. Configure the Paystack webhook at `/api/payments/paystack/webhook`. Test Paystack in test mode before switching to live credentials.
+
+
+## v2.6.1 upgrade
+
+Run `sql/upgrade-v2.6.1-employer-approval.sql` once in Supabase SQL Editor after the v2.6 migration. This adds the `pending` employer approval state and initializes Facebook integration setting placeholders. Employer registrations require email confirmation and remain pending until an admin approves them from Admin Dashboard → All Users. Admins can create staff or employer accounts from All Users.
+
+The Facebook posting worker is not enabled by this release. Configure Meta Page permissions and a secure server-side posting integration before enabling automated publishing. Never put a Page Access Token in public site settings or browser code.
