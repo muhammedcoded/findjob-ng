@@ -113,10 +113,20 @@ if(p==='/api/employer/signup'&&method==='POST'){
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||password.length<10||password!==confirm||company.length<2||first.length<2||last.length<2||phone.length<7||!(b.accept_terms===true||b.accept_terms==='on'))return err(res,400,'Enter a valid email, matching passwords, company name, first and last name, phone number, and accept the employer terms.');
  if(website&&!urlOk(website))return err(res,400,'Enter a valid company website URL.');
  const base=process.env.SUPABASE_URL.replace(/\/$/,''),redirect=(process.env.SITE_URL||`https://${req.headers.host}`).replace(/\/$/,'')+'/login?confirmed=1';
- const r=await fetch(`${base}/auth/v1/signup?redirect_to=${encodeURIComponent(redirect)}`,{method:'POST',headers:{apikey:anon,'Content-Type':'application/json'},body:JSON.stringify({email,password,data:{account_type:'employer',company_name:company,first_name:first,middle_name:middle,last_name:last,contact_name:contact,phone}})});const data=await r.json().catch(()=>({}));if(!r.ok)return err(res,400,data.msg||data.message||data.error_description||'Could not create employer account.');
+ const r=await fetch(`${base}/auth/v1/signup?redirect_to=${encodeURIComponent(redirect)}`,{method:'POST',headers:{apikey:anon,'Content-Type':'application/json'},body:JSON.stringify({email,password,data:{account_type:'employer',company_name:company,first_name:first,middle_name:middle,last_name:last,contact_name:contact,phone,selected_plan:['wallet','unlimited_monthly','unlimited_yearly'].includes(b.selected_plan)?b.selected_plan:'wallet'}})});const data=await r.json().catch(()=>({}));if(!r.ok)return err(res,400,data.msg||data.message||data.error_description||'Could not create employer account.');
  const user=data.user||data;if(!user.id)return err(res,400,'Supabase did not return an account ID.');
  try{await db('employers',{method:'POST',body:{id:user.id,company_name:company,contact_name:contact,first_name:first,middle_name:middle,last_name:last,email,phone,website,status:'pending'},prefer:'return=minimal'});await db('employer_wallets',{method:'POST',query:'on_conflict=employer_id',body:{employer_id:user.id,balance_kobo:0},prefer:'resolution=merge-duplicates,return=minimal'});}catch(e){console.error('Employer profile creation failed',e.message);return err(res,500,'Your login identity was created, but the employer profile could not be saved. Please contact support with the time of registration.');}
- return json(res,201,{ok:true,needs_email_confirmation:!data.access_token,message:'Registration received. Check your email and confirm your address. Your employer account will be available after admin approval.',employer:{id:user.id,email,company_name:company,contact_name:contact,first_name:first,middle_name:middle,last_name:last}});
+ return json(res,201,{ok:true,needs_email_confirmation:!data.access_token,message:'Check your email to confirm your email address.',employer:{id:user.id,email,company_name:company,contact_name:contact,first_name:first,middle_name:middle,last_name:last}});
+}
+if(p==='/api/employer/resend-confirmation'&&method==='POST'){
+ const b=await body(req),email=String(b.email||'').trim().toLowerCase(),anon=process.env.SUPABASE_ANON_KEY;
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return err(res,400,'Enter the email address you used to register.');
+ if(!anon)return err(res,503,'Email confirmation is not configured. Contact support.');
+ const base=process.env.SUPABASE_URL?.replace(/\/$/,'');if(!base)return err(res,503,'Supabase is not configured.');
+ const redirect=(process.env.SITE_URL||`https://${req.headers.host}`).replace(/\/$/,'')+'/login?confirmed=1';
+ const r=await fetch(`${base}/auth/v1/resend`,{method:'POST',headers:{apikey:anon,'Content-Type':'application/json'},body:JSON.stringify({type:'signup',email,options:{emailRedirectTo:redirect}})});
+ const data=await r.json().catch(()=>({}));if(!r.ok)return err(res,400,data.msg||data.message||data.error_description||'Could not resend the confirmation email.');
+ return json(res,200,{ok:true,message:'If this address has an unconfirmed employer account, a new confirmation email has been sent.'});
 }
 if(p==='/api/employer/login'&&method==='POST'){
  const b=await body(req),email=String(b.email||'').trim().toLowerCase(),password=String(b.password||''),anon=process.env.SUPABASE_ANON_KEY;if(!anon)return err(res,503,'Employer login needs SUPABASE_ANON_KEY in Railway Variables.');
