@@ -10,6 +10,11 @@ test('one month Unlimited costs ₦50,500',()=>assert.equal(employerCharge({kind
 test('longer Unlimited terms apply configured discounts',()=>{
  assert.equal(employerCharge({kind:'unlimited',months:3,discounts:{unlimited_discount_3m_percent:5}}).amount_kobo,14392500);
  assert.equal(employerCharge({kind:'unlimited',months:6,discounts:{unlimited_discount_6m_percent:10}}).amount_kobo,27270000);
- assert.equal(employerCharge({kind:'unlimited',months:12,discounts:{unlimited_discount_12m_percent:15}}).amount_kobo,51510000);
+ assert.equal(employerCharge({kind:'unlimited',months:12,discounts:{unlimited_discount_12m_percent:15}}).amount_kobo,55000000);
 });
 test('Unlimited duration is limited to twelve months',()=>assert.equal(employerCharge({kind:'unlimited',months:24}).months,12));
+test('yearly Unlimited costs ₦550,000 and displays 9.24% savings',()=>{
+ const charge=employerCharge({kind:'unlimited',months:12});
+ assert.equal(charge.amount_kobo,55000000);
+ assert.equal(charge.discount_percent,9.24);
+});
