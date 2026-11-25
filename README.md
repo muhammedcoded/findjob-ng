@@ -183,3 +183,7 @@ The Facebook posting worker is not enabled by this release. Configure Meta Page 
 ## v2.6.4 employer pricing selector fix
 
 The public Become an Employer page now has a visible Unlimited subscription selector for Monthly (₦50,500) and Yearly (₦550,000). The displayed price and signup button update when the employer changes the term, and the selected term is preselected on the employer registration form. Static asset cache versions were bumped so browsers load the updated interface.
+
+
+## v2.6.7 Employer subscription access
+See `UPGRADE-v2.6.7-subscription-dashboard.md`. Run `sql/upgrade-v2.6.7-subscription-access.sql` once in Supabase SQL Editor after deploying. This removes manual employer account approval as a prerequisite. Email confirmation is still required, and payment entitlement controls access to employer hiring tools.
