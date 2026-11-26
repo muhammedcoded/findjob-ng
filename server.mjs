@@ -40,7 +40,7 @@ async function employerEntitlement(employer){
   db('employer_subscriptions',{query:`select=id,starts_at,ends_at&employer_id=eq.${employer.id}&starts_at=lte.${now}&ends_at=gt.${now}&order=ends_at.desc&limit=1`})
  ]);
  const balance=Number(wallet[0]?.balance_kobo||0);
- return {allowed:Boolean(subs[0]),workspace_allowed:Boolean(subs[0]),can_post:Boolean(subs[0]||balance>=550000),subscription:subs[0]||null,wallet_balance_kobo:balance,job_credits:Math.floor(balance/550000)};
+ return {allowed:Boolean(subs[0]||balance>=550000),workspace_allowed:true,can_post:Boolean(subs[0]||balance>=550000),subscription:subs[0]||null,wallet_balance_kobo:balance,job_credits:Math.floor(balance/550000)};
 }
 function pdfEscape(value){return String(value??'').normalize('NFKD').replace(/[^\x20-\x7E]/g,'').replace(/([\\()])/g,'\\$1');}
 function makeReceiptPdf(lines){
@@ -147,9 +147,6 @@ if(p==='/api/employer/login'&&method==='POST'){
  const b=await body(req),email=String(b.email||'').trim().toLowerCase(),password=String(b.password||''),anon=process.env.SUPABASE_ANON_KEY;if(!anon)return err(res,503,'Employer login needs SUPABASE_ANON_KEY in Railway Variables.');
  const base=process.env.SUPABASE_URL.replace(/\/$/,'');const r=await fetch(`${base}/auth/v1/token?grant_type=password`,{method:'POST',headers:{apikey:anon,'Content-Type':'application/json'},body:JSON.stringify({email,password})});const data=await r.json().catch(()=>({}));if(!r.ok)return err(res,401,data.msg||data.error_description||'Invalid email or password. Confirm your email if required.');
  const profile=await db('employers',{query:`select=*&id=eq.${encodeURIComponent(data.user?.id||'')}&limit=1`});if(!profile[0])return err(res,403,'This login is not linked to an employer account.');if(profile[0].status==='suspended')return err(res,403,'This employer account is suspended. Contact support.');return json(res,200,{token:data.access_token,expires_in:data.expires_in,employer:profile[0]});
-}
-if(p.startsWith('/api/employer/') && !['/api/employer/me','/api/employer/overview','/api/employer/payments/initialize','/api/employer/payments/verify','/api/employer/jobs'].includes(p) && !p.startsWith('/api/employer/receipts/')){
- const employer=await employerAuth(req);if(!employer)return err(res,401,'Employer sign-in required');const entitlement=await employerEntitlement(employer);if(!entitlement.workspace_allowed)return err(res,402,'This feature requires an active Unlimited Monthly or Unlimited Yearly subscription. Pay as you go credits are for job posting only.');
 }
 if(p==='/api/employer/me'&&method==='GET'){const employer=await employerAuth(req);if(!employer)return err(res,401,'Employer sign-in required');const entitlement=await employerEntitlement(employer);return json(res,200,{...employer,entitlement,selected_plan:employer.selected_plan||'wallet'});}
 if(p==='/api/employer/payments/initialize'&&method==='POST'){
